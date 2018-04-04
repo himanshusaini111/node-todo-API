@@ -11,7 +11,9 @@ var todos = [{
     text: "Test text 1"
 },
 {   _id: new ObjectId(),
-    text: "Test text 2"
+    text: "Test text 2",
+    completed: true,
+    completedat: 45436541
 }];
 
 beforeEach((done) => {
@@ -127,5 +129,59 @@ describe('DELETE /todos/:id', () => {
             .delete(`/todos/1323`)
             .expect(400)
             .end(done);
+    });
+});
+
+describe('PATCH /todos/:id', () => {
+    it('should get update a todo', (done) => {
+        todoU = {
+            text: 'Updated test text 1',
+            completed: true
+        };
+
+        request(app)
+            .patch(`/todos/${todos[0]._id}`)
+            .send(todoU)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.text).toBe(todoU.text);
+                expect(res.body.completed).toBe(true);
+                expect(typeof (res.body.completedat)).toBe('number');
+            }).end((err, res) => {
+                if(err) return done(err);
+
+                Todo.findOne({text: todoU.text}).then((doc) => {
+                    expect(doc.completed).toBe(true);
+                    expect(typeof (doc.completedat)).toBe('number');
+
+                    done();
+                }).catch((e) => done(e));
+            });
+    });
+
+    it('should clear completedat when todo is not completed', (done) => {
+        todoU = {
+            text: 'Updated test text 2',
+            completed: false
+        }
+        request(app)
+            .patch(`/todos/${todos[1]._id}`)
+            .send(todoU)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.text).toBe(todoU.text);
+                expect(res.body.completed).toBe(false);
+                expect(res.body.completedat).toBe(null);
+            }).end((err, res) => {
+                if(err) return done(err);
+
+                Todo.findOne({text: todoU.text}).then((doc) => {
+                    expect(doc.text).toBe(todoU.text);
+                    expect(doc.completed).toBe(false);
+                    expect(doc.completedat).toBe(null);
+
+                    done();
+                }).catch((e) => done(e));
+            });
     });
 });
