@@ -23,10 +23,9 @@ app.post('/todos', (req, res) => {
 
     todo.save().then((doc) => {
         res.send(doc);
-    }, (e) => {
+    }).catch((e) => {
         res.status(400).send(e);
-        console.log('Unable to save the Todo');
-    })
+    });
 });
 
 app.get('/todos', (req, res) => {
